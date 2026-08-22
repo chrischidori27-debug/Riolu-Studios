@@ -14,8 +14,8 @@ Arcade
 
 ## Controles
 * A / ← - Mover el residuo a la columna de la izquierda
-* D / → - Mover el residuo a la columna de la derecha
-
+* D / → - Mover el residuo a la columna de la derecha  
+**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/EcoDrop.html
 ## Capturas de pantalla
 
 ### Pantalla inicial
