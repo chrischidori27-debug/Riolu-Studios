@@ -1,5 +1,5 @@
 # EcoDrop
-
+**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/EcoDrop.html  
 ## Descripción
 EcoDrop es un juego de reflejos al estilo *Guitar Hero* con temática de reciclaje.
 
@@ -14,8 +14,8 @@ Arcade
 
 ## Controles
 * A / ← - Mover el residuo a la columna de la izquierda
-* D / → - Mover el residuo a la columna de la derecha  
-**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/EcoDrop.html
+* D / → - Mover el residuo a la columna de la derecha
+
 ## Capturas de pantalla
 
 ### Pantalla inicial
