@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EducaPet 🐾</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap%22 rel="stylesheet">
+<style>
+  :root{
+    --sky:#BFEAF0;
+    --sky-deep:#8FD8E6;
+    --grass:#8FDA9E;
+    --grass-deep:#63C87A;
+    --sun:#FFD166;
+    --coral:#FF8B7A;
+    --plum:#463A56;
+    --plum-soft:#6B5C7E;
+    --cream:#FFFDF7;
+    --card:#FFFFFF;
+    --bad:#FF7A6E;
+    --ok:#63C87A;
+    --warn:#FFC24B;
+    --radius:26px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 8%, #FFFFFF80 0%, transparent 40%),
+      linear-gradient(180deg, var(--sky) 0%, var(--sky-deep) 38%, var(--grass) 100%);
+    min-height:100vh;
+    color:var(--plum);
+    overflow-x:hidden;
+    position:relative;
+  }
+  .display{font-family:'Baloo 2', sans-serif;}
+ 
+  /* floating clouds/decor */
+  .cloud{
+    position:fixed; pointer-events:none; opacity:.85; z-index:0;
+    animation:drift 40s linear infinite;
+  }
+  .cloud svg{width:100%;height:100%;display:block;}
+  .c1{top:6%; left:-10%; width:140px; animation-duration:55s;}
+  .c2{top:16%; left:-20%; width:90px; animation-duration:70s; animation-delay:-20s;}
+  .c3{top:2%; left:-15%; width:110px; animation-duration:65s; animation-delay:-40s;}
+  @keyframes drift{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(140vw); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .cloud{animation:none; display:none;}
+  }
+ 
+  #app{
+    position:relative; z-index:1;
+    max-width:520px; margin:0 auto;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    padding:18px 16px 30px;
+  }
+ 
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:6px;
+  }
+  header.topbar h1{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1.7rem; font-weight:800; margin:0;
+    color:var(--plum);
+    display:flex; align-items:center; gap:8px;
+  }
+  header.topbar h1 .paw{font-size:1.4rem;}
+ 
+  .screen{
+    display:none;
+    flex-direction:column;
+    flex:1;
+    animation:fadeIn .35s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+ 
+  /* ---------- SELECT SCREEN ---------- */
+  #select-screen{
+    align-items:center; justify-content:center; text-align:center; gap:18px;
+    padding-top:10px;
+  }
+  #select-screen .intro-title{
+    font-size:1.9rem; font-weight:800; line-height:1.15; margin:6px 0 2px;
+  }
+  #select-screen .intro-sub{
+    color:var(--plum-soft); font-size:1.02rem; max-width:360px; margin:0 auto;
+  }
+  .pet-choices{
+    display:flex; gap:16px; margin-top:10px; flex-wrap:wrap; justify-content:center;
+  }
+  .pet-choice-card{
+    background:var(--card); border-radius:24px; padding:18px 16px 16px;
+    width:150px; cursor:pointer; border:3px solid transparent;
+    box-shadow:0 10px 0 #00000014, 0 14px 24px -10px #00000022;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .pet-choice-card:hover{ transform:translateY(-4px); }
+  .pet-choice-card:active{ transform:translateY(1px); box-shadow:0 4px 0 #00000014; }
+  .pet-choice-card.chosen{ border-color:var(--sun); }
+  .pet-choice-card svg{width:100%; height:auto; display:block;}
+  .pet-choice-card .name{
+    font-family:'Baloo 2'; font-weight:700; margin-top:6px; font-size:1.15rem;
+  }
+  .pet-choice-card .desc{ font-size:.82rem; color:var(--plum-soft); margin-top:2px; }
+ 
+  .btn{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700; font-size:1.05rem;
+    border:none; border-radius:18px;
+    padding:14px 26px;
+    cursor:pointer;
+    color:#fff;
+    background:var(--coral);
+    box-shadow:0 6px 0 #D9604F;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #D9604F; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn.secondary{
+    background:var(--card); color:var(--plum);
+    box-shadow:0 6px 0 #E3E0EA;
+    border:2px solid #ECEAF3;
+  }
+  .btn.secondary:active{ box-shadow:0 2px 0 #E3E0EA; }
+  .btn.small{ padding:9px 16px; font-size:.9rem; border-radius:14px; box-shadow:0 4px 0 #D9604F;}
+  .btn.small:active{ box-shadow:0 1px 0 #D9604F; }
+ 
+  /* ---------- GAME SCREEN ---------- */
+  #game-screen{ gap:14px; }
+ 
+  .stage-card{
+    background:linear-gradient(180deg, #FFFDF7 0%, #FFF6E4 100%);
+    border-radius:var(--radius);
+    padding:14px 16px 10px;
+    box-shadow:0 10px 24px -10px #00000030;
+    position:relative;
+  }
+  .stage-top{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;
+  }
+  .pet-name-tag{
+    font-family:'Baloo 2'; font-weight:800; font-size:1.15rem;
+  }
+  .change-pet-btn{
+    background:none; border:none; color:var(--plum-soft); font-size:.82rem;
+    text-decoration:underline; cursor:pointer; font-family:'Nunito';
+    padding:4px;
+  }
+ 
+  .stage{
+    display:flex; align-items:center; justify-content:center;
+    padding:6px 0 4px;
+    position:relative;
+    min-height:190px;
+  }
+  .stage svg{ width:190px; height:190px; }
+  .stage .status-bubble{
+    position:absolute; top:-2px; right:6px;
+    background:#fff; border-radius:14px; padding:6px 10px;
+    font-size:1.4rem;
+    box-shadow:0 4px 10px -3px #0000002a;
+    animation:pop .25s ease;
+  }
+  @keyframes pop{ from{ transform:scale(.5); opacity:0; } to{ transform:scale(1); opacity:1; } }
+ 
+  .overall-status{
+    text-align:center; font-family:'Baloo 2'; font-weight:700;
+    font-size:1.05rem; margin-top:2px; margin-bottom:2px;
+  }
+ 
+  .stats{
+    display:flex; flex-direction:column; gap:8px; margin-top:8px;
+  }
+  .stat-row{ display:flex; align-items:center; gap:8px; }
+  .stat-icon{ font-size:1.15rem; width:24px; text-align:center; }
+  .stat-label{ font-size:.78rem; font-weight:700; color:var(--plum-soft); width:56px; }
+  .bar-track{
+    flex:1; height:14px; background:#EEEBF5; border-radius:10px; overflow:hidden;
+    position:relative;
+  }
+  .bar-fill{
+    height:100%; border-radius:10px;
+    transition:width .5s cubic-bezier(.3,1,.4,1), background .3s ease;
+  }
+  .bar-fill.health{ background:linear-gradient(90deg, #FF9A8B, #FF7A6E); }
+  .bar-fill.energy{ background:linear-gradient(90deg, #FFD166, #FFB74B); }
+  .bar-fill.happiness{ background:linear-gradient(90deg, #8FE0A6, #58C97C); }
+  .stat-value{ font-size:.75rem; font-weight:800; width:32px; text-align:right; color:var(--plum-soft); }
+ 
+  /* message toast */
+  .message-box{
+    background:var(--card); border-radius:18px; padding:12px 14px;
+    font-size:.92rem; line-height:1.35; color:var(--plum);
+    box-shadow:0 6px 16px -8px #00000022;
+    min-height:48px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .message-box .msg-icon{ font-size:1.4rem; flex-shrink:0; }
+  .message-box.empty{ color:var(--plum-soft); font-style:italic; }
+ 
+  /* food shelf */
+  .food-section-title{
+    font-family:'Baloo 2'; font-weight:700; font-size:.95rem;
+    display:flex; align-items:center; gap:6px; margin:2px 0 6px;
+  }
+  .food-section-title.healthy{ color:#2F9E52; }
+  .food-section-title.unhealthy{ color:#E0635A; }
+ 
+  .food-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr);
+    gap:8px; margin-bottom:12px;
+  }
+  .food-item{
+    background:var(--card); border-radius:16px; border:3px solid transparent;
+    padding:8px 4px 6px; text-align:center; cursor:pointer;
+    box-shadow:0 4px 0 #00000012;
+    transition:transform .12s ease, border-color .12s ease;
+    font-family:'Nunito';
+  }
+  .food-item:hover{ transform:translateY(-2px); }
+  .food-item:active{ transform:translateY(1px); }
+  .food-item.selected{ border-color:var(--sun); background:#FFF8E2; }
+  .food-item .emoji{ font-size:1.6rem; display:block; }
+  .food-item .fname{ font-size:.68rem; font-weight:700; margin-top:2px; color:var(--plum-soft); line-height:1.1; }
+ 
+  .feed-bar{
+    display:flex; gap:10px; align-items:center; margin-top:4px;
+  }
+  .feed-bar .btn{ flex:1; }
+  .selected-hint{
+    font-size:.78rem; color:var(--plum-soft); text-align:center; min-height:16px;
+  }
+ 
+  /* ---------- END / NEGLECT SCREEN ---------- */
+  #end-screen{
+    align-items:center; justify-content:center; text-align:center; gap:14px;
+  }
+  #end-screen .end-emoji{ font-size:3.2rem; }
+  #end-screen h2{ font-family:'Baloo 2'; font-size:1.5rem; margin:0; }
+  #end-screen p{ color:var(--plum-soft); max-width:360px; margin:0 auto; font-size:.98rem; }
+ 
+  footer.credits{
+    text-align:center; font-size:.7rem; color:var(--plum-soft); opacity:.6; margin-top:14px;
+  }
+ 
+  @media (max-width:380px){
+    .food-grid{ grid-template-columns:repeat(4, 1fr); gap:6px; }
+    .food-item .emoji{ font-size:1.35rem; }
+    .stage svg{ width:150px; height:150px; }
+  }
+</style>
+</head>
+<body>
+ 
+<div class="cloud c1"><svg viewBox="0 0 200 100"><ellipse cx="60" cy="60" rx="55" ry="30" fill="#fff"/><ellipse cx="110" cy="45" rx="45" ry="35" fill="#fff"/><ellipse cx="150" cy="65" rx="40" ry="24" fill="#fff"/></svg></div>
+<div class="cloud c2"><svg viewBox="0 0 200 100"><ellipse cx="60" cy="60" rx="55" ry="30" fill="#fff"/><ellipse cx="110" cy="45" rx="45" ry="35" fill="#fff"/><ellipse cx="150" cy="65" rx="40" ry="24" fill="#fff"/></svg></div>
+<div class="cloud c3"><svg viewBox="0 0 200 100"><ellipse cx="60" cy="60" rx="55" ry="30" fill="#fff"/><ellipse cx="110" cy="45" rx="45" ry="35" fill="#fff"/><ellipse cx="150" cy="65" rx="40" ry="24" fill="#fff"/></svg></div>
+ 
+<div id="app">
+ 
+  <header class="topbar">
+<h1><span class="paw">🐾</span> EducaPet</h1>
+</header>
+ 
+  <!-- ===================== SELECT SCREEN ===================== -->
+<section id="select-screen" class="screen active">
+<div class="intro-title">¡Elige a tu mascota!</div>
+<div class="intro-sub">Cuídala eligiendo buenos alimentos. Tus decisiones cambian cómo se siente.</div>
+ 
+    <div class="pet-choices">
+<div class="pet-choice-card" data-pet="gato" id="card-gato">
+<div class="art">
+<svg viewBox="0 0 160 150"><g id="preview-gato"></g></svg>
+</div>
+<div class="name">Gato</div>
+<div class="desc">Curioso y juguetón</div>
+</div>
+<div class="pet-choice-card" data-pet="pony" id="card-pony">
+<div class="art">
+<svg viewBox="0 0 160 150"><g id="preview-pony"></g></svg>
+</div>
+<div class="name">Pony</div>
+<div class="desc">Alegre y energético</div>
+</div>
+</div>
+ 
+    <button class="btn" id="start-btn" disabled>Comenzar a cuidar 🐾</button>
+</section>
+ 
+  <!-- ===================== GAME SCREEN ===================== -->
+<section id="game-screen" class="screen">
+ 
+    <div class="stage-card">
+<div class="stage-top">
+<div class="pet-name-tag" id="pet-name-tag">Tu mascota</div>
+<button class="change-pet-btn" id="change-pet-btn">Cambiar mascota</button>
+</div>
+ 
+      <div class="stage">
+<svg viewBox="0 0 200 190" id="pet-svg"><g id="pet-art"></g></svg>
+</div>
+ 
+      <div class="overall-status" id="overall-status">Estado: Feliz 😊</div>
+ 
+      <div class="stats">
+<div class="stat-row">
+<span class="stat-icon">❤️</span>
+<span class="stat-label">Salud</span>
+<div class="bar-track"><div class="bar-fill health" id="bar-health" style="width:100%"></div></div>
+<span class="stat-value" id="val-health">100</span>
+</div>
+<div class="stat-row">
+<span class="stat-icon">⚡</span>
+<span class="stat-label">Energía</span>
+<div class="bar-track"><div class="bar-fill energy" id="bar-energy" style="width:100%"></div></div>
+<span class="stat-value" id="val-energy">100</span>
+</div>
+<div class="stat-row">
+<span class="stat-icon">💛</span>
+<span class="stat-label">Ánimo</span>
+<div class="bar-track"><div class="bar-fill happiness" id="bar-happiness" style="width:100%"></div></div>
+<span class="stat-value" id="val-happiness">100</span>
+</div>
+</div>
+</div>
+ 
+    <div class="message-box empty" id="message-box">
+<span class="msg-icon">💬</span>
+<span id="message-text">Elige un alimento y presiona "Alimentar" para empezar.</span>
+</div>
+ 
+    <div>
+<div class="food-section-title healthy">🥦 Alimentos saludables</div>
+<div class="food-grid" id="healthy-grid"></div>
+ 
+      <div class="food-section-title unhealthy">🍔 Alimentos poco saludables</div>
+<div class="food-grid" id="unhealthy-grid"></div>
+</div>
+ 
+    <div class="feed-bar">
+<button class="btn" id="feed-btn" disabled>Alimentar</button>
+</div>
+<div class="selected-hint" id="selected-hint">Ningún alimento seleccionado</div>
+ 
+  </section>
+ 
+  <!-- ===================== END / NEGLECT SCREEN ===================== -->
+<section id="end-screen" class="screen">
+<div class="end-emoji" id="end-emoji">😢</div>
+<h2>Tu mascota se siente abandonada</h2>
+<p id="end-message">Cuando no cuidamos bien a nuestra mascota, ella se pone triste y débil. ¡Una buena alimentación es muy importante para mantenerla sana!</p>
+<button class="btn" id="restart-btn">Volver a intentarlo</button>
+</section>
+ 
+  <footer class="credits">EducaPet — prototipo educativo</footer>
+</div>
+ 
+<script>
+(function(){
+  "use strict";
+ 
+  /* ---------------------------------------------------------
+     DATA: FOODS
+  --------------------------------------------------------- */
+  const HEALTHY_FOODS = [
+    { id:'fruta',   name:'Fruta',        emoji:'🍎', health:6,  energy:5,  happiness:6,
+      msg:'¡Excelente elección! Las frutas aportan vitaminas y nutrientes importantes.' },
+    { id:'verdura', name:'Verdura',      emoji:'🥦', health:7,  energy:3,  happiness:3,
+      msg:'Las verduras fortalecen el cuerpo y ayudan a crecer sano y fuerte.' },
+    { id:'agua',    name:'Agua',         emoji:'💧', health:3,  energy:6,  happiness:2,
+      msg:'El agua ayuda a mantener una buena hidratación en el cuerpo.' },
+    { id:'sano',    name:'Comida sana',  emoji:'🍲', health:8,  energy:8,  happiness:5,
+      msg:'Una comida nutritiva le da mucha energía para jugar todo el día.' },
+  ];
+ 
+  const UNHEALTHY_FOODS = [
+    { id:'dulce',   name:'Dulce',        emoji:'🍬', health:-4, energy:-3, happiness:8,
+      msg:'Los dulces son ricos por un momento, pero comer muchos puede afectar la salud.' },
+    { id:'papas',   name:'Papas fritas', emoji:'🍟', health:-5, energy:-4, happiness:6,
+      msg:'Las papas fritas tienen mucha grasa; en exceso bajan la energía.' },
+    { id:'hambur',  name:'Hamburguesa',  emoji:'🍔', health:-6, energy:-5, happiness:5,
+      msg:'Las hamburguesas de comida rápida, si se comen seguido, no alimentan bien al cuerpo.' },
+    { id:'soda',    name:'Bebida azucarada', emoji:'🥤', health:-5, energy:-6, happiness:7,
+      msg:'Las bebidas con mucha azúcar pueden cansar el cuerpo en vez de darle energía.' },
+  ];
+ 
+  const EQUILIBRIO_MSG = 'Una alimentación equilibrada ayuda a mantener a tu mascota feliz y activa.';
+ 
+  /* ---------------------------------------------------------
+     STATE
+  --------------------------------------------------------- */
+  let state = {
+    petType: null,       // 'gato' | 'pony'
+    petCustomName: null,
+    health: 80,
+    energy: 80,
+    happiness: 80,
+    unhealthyStreak: 0,  // consecutive unhealthy feedings
+    selectedFood: null,
+    feedCount: 0,
+    ended: false
+  };
+ 
+  const PET_LABELS = { gato:'Gato', pony:'Pony' };
+ 
+  /* ---------------------------------------------------------
+     SVG ART — built procedurally so expressions can change
+  --------------------------------------------------------- */
+ 
+  // Returns SVG string for a face (eyes+mouth) given mood: 'happy'|'neutral'|'tired'|'sad'
+  function faceParts(mood, cx, cy){
+    // eyes
+    let eyes = '';
+    let mouth = '';
+    const ex = 18; // eye horizontal offset from center
+    if(mood === 'happy'){
+      eyes = `
+<path d="M ${cx-ex-8} ${cy-4} Q ${cx-ex} ${cy-14} ${cx-ex+8} ${cy-4}" stroke="#463A56" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+<path d="M ${cx+ex-8} ${cy-4} Q ${cx+ex} ${cy-14} ${cx+ex+8} ${cy-4}" stroke="#463A56" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      `;
+      mouth = `<path d="M ${cx-14} ${cy+16} Q ${cx} ${cy+30} ${cx+14} ${cy+16}" stroke="#463A56" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
+    } else if(mood === 'neutral'){
+      eyes = `
+<circle cx="${cx-ex}" cy="${cy-6}" r="5.5" fill="#463A56"/>
+<circle cx="${cx+ex}" cy="${cy-6}" r="5.5" fill="#463A56"/>
+      `;
+      mouth = `<path d="M ${cx-12} ${cy+20} Q ${cx} ${cy+24} ${cx+12} ${cy+20}" stroke="#463A56" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+    } else if(mood === 'tired'){
+      eyes = `
+<path d="M ${cx-ex-8} ${cy-6} Q ${cx-ex} ${cy-2} ${cx-ex+8} ${cy-6}" stroke="#463A56" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<path d="M ${cx+ex-8} ${cy-6} Q ${cx+ex} ${cy-2} ${cx+ex+8} ${cy-6}" stroke="#463A56" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      `;
+      mouth = `<path d="M ${cx-10} ${cy+22} Q ${cx} ${cy+18} ${cx+10} ${cy+22}" stroke="#463A56" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+    } else { // sad
+      eyes = `
+<circle cx="${cx-ex}" cy="${cy-6}" r="5" fill="#463A56"/>
+<circle cx="${cx+ex}" cy="${cy-6}" r="5" fill="#463A56"/>
+<path d="M ${cx-ex-8} ${cy-14} Q ${cx-ex} ${cy-18} ${cx-ex+6} ${cy-13}" stroke="#463A56" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<path d="M ${cx+ex+8} ${cy-14} Q ${cx+ex} ${cy-18} ${cx+ex-6} ${cy-13}" stroke="#463A56" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      `;
+      mouth = `<path d="M ${cx-12} ${cy+26} Q ${cx} ${cy+14} ${cx+12} ${cy+26}" stroke="#463A56" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+    }
+    return eyes + mouth;
+  }
+ 
+  function catSVG(mood, small){
+    const s = small ? 0.78 : 1;
+    const cx = 100*s + (small?10:0), cy = 100*s + (small?10:0);
+    const blush = mood === 'happy' ? `<ellipse cx="${cx-32}" cy="${cy+6}" rx="9" ry="6" fill="#FFB4A8" opacity=".65"/><ellipse cx="${cx+32}" cy="${cy+6}" rx="9" ry="6" fill="#FFB4A8" opacity=".65"/>` : '';
+    return `
+<g transform="translate(${small?10:0},${small?10:0}) scale(${s})">
+<ellipse cx="100" cy="150" rx="46" ry="10" fill="#00000012"/>
+<path d="M 62 55 L 50 22 L 82 45 Z" fill="#FFB27A"/>
+<path d="M 138 55 L 150 22 L 118 45 Z" fill="#FFB27A"/>
+<path d="M 65 50 L 57 32 L 76 46 Z" fill="#FF8B7A"/>
+<path d="M 135 50 L 143 32 L 124 46 Z" fill="#FF8B7A"/>
+<circle cx="100" cy="95" r="58" fill="#FFC98F"/>
+<ellipse cx="100" cy="115" rx="30" ry="24" fill="#FFEFD9"/>
+      ${blush}
+      ${faceParts(mood, 100, 92)}
+<path d="M 96 108 q 4 4 8 0" stroke="#463A56" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path d="M 60 112 q -18 -4 -30 2" stroke="#463A56" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".55"/>
+<path d="M 60 118 q -18 4 -28 10" stroke="#463A56" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".55"/>
+<path d="M 140 112 q 18 -4 30 2" stroke="#463A56" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".55"/>
+<path d="M 140 118 q 18 4 28 10" stroke="#463A56" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".55"/>
+<path d="M 150 120 q 30 -6 30 -30" stroke="#FFC98F" stroke-width="14" fill="none" stroke-linecap="round"/>
+</g>`;
+  }
+ 
+  function ponySVG(mood, small){
+    const s = small ? 0.78 : 1;
+    const blush = mood === 'happy' ? `<ellipse cx="68" cy="102" rx="9" ry="6" fill="#FFB4A8" opacity=".65"/><ellipse cx="132" cy="102" rx="9" ry="6" fill="#FFB4A8" opacity=".65"/>` : '';
+    return `
+<g transform="translate(${small?10:0},${small?10:0}) scale(${s})">
+<ellipse cx="100" cy="150" rx="46" ry="10" fill="#00000012"/>
+<path d="M 55 40 Q 40 10 70 20 Q 90 6 100 30 Q 112 6 132 20 Q 162 8 148 42 Q 170 55 150 68 Q 100 45 55 68 Q 32 54 55 40 Z" fill="#B79CE0"/>
+<path d="M 68 34 L 60 14 L 80 32 Z" fill="#8FDA9E"/>
+<path d="M 132 34 L 142 14 L 122 32 Z" fill="#8FDA9E"/>
+<circle cx="100" cy="98" r="56" fill="#FFF3E0"/>
+<ellipse cx="100" cy="118" rx="28" ry="22" fill="#FFFFFF"/>
+      ${blush}
+      ${faceParts(mood, 100, 94)}
+<ellipse cx="94" cy="112" rx="3" ry="2.4" fill="#463A56" opacity=".7"/>
+<ellipse cx="106" cy="112" rx="3" ry="2.4" fill="#463A56" opacity=".7"/>
+<path d="M 150 100 Q 178 96 174 70 Q 168 92 148 92 Z" fill="#B79CE0"/>
+<path d="M 150 108 Q 180 108 178 84" stroke="#8FDA9E" stroke-width="6" fill="none" stroke-linecap="round" opacity=".8"/>
+</g>`;
+  }
+ 
+  function renderPreview(type){
+    const g = document.getElementById('preview-'+type);
+    g.innerHTML = type === 'gato' ? catSVG('happy', true) : ponySVG('happy', true);
+  }
+  renderPreview('gato');
+  renderPreview('pony');
+ 
+  function currentMood(){
+    if(state.health <= 20) return 'sad';
+    if(state.energy <= 30 || state.happiness <= 30) return 'tired';
+    if(state.health >= 65 && state.energy >= 55 && state.happiness >= 60) return 'happy';
+    return 'neutral';
+  }
+ 
+  function renderPet(){
+    const g = document.getElementById('pet-art');
+    const mood = currentMood();
+    g.innerHTML = state.petType === 'gato' ? catSVG(mood, false) : ponySVG(mood, false);
+  }
+ 
+  /* ---------------------------------------------------------
+     SELECT SCREEN LOGIC
+  --------------------------------------------------------- */
+  const cardGato = document.getElementById('card-gato');
+  const cardPony = document.getElementById('card-pony');
+  const startBtn = document.getElementById('start-btn');
+  let pendingPet = null;
+ 
+  function choosePet(type){
+    pendingPet = type;
+    cardGato.classList.toggle('chosen', type==='gato');
+    cardPony.classList.toggle('chosen', type==='pony');
+    startBtn.disabled = false;
+  }
+  cardGato.addEventListener('click', ()=>choosePet('gato'));
+  cardPony.addEventListener('click', ()=>choosePet('pony'));
+ 
+  startBtn.addEventListener('click', ()=>{
+    if(!pendingPet) return;
+    state.petType = pendingPet;
+    state.health = 80; state.energy = 80; state.happiness = 80;
+    state.unhealthyStreak = 0; state.feedCount = 0; state.ended = false;
+    state.selectedFood = null;
+    goToScreen('game-screen');
+    document.getElementById('pet-name-tag').textContent = PET_LABELS[pendingPet];
+    buildFoodGrids();
+    renderPet();
+    updateStatsUI();
+    setMessage('👋', 'Elige un alimento y presiona "Alimentar" para empezar.', true);
+  });
+ 
+  document.getElementById('change-pet-btn').addEventListener('click', ()=>{
+    goToScreen('select-screen');
+  });
+ 
+  document.getElementById('restart-btn').addEventListener('click', ()=>{
+    goToScreen('select-screen');
+  });
+ 
+  function goToScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+ 
+  /* ---------------------------------------------------------
+     FOOD GRID
+  --------------------------------------------------------- */
+  function buildFoodGrids(){
+    const hGrid = document.getElementById('healthy-grid');
+    const uGrid = document.getElementById('unhealthy-grid');
+    hGrid.innerHTML = '';
+    uGrid.innerHTML = '';
+    HEALTHY_FOODS.forEach(f => hGrid.appendChild(foodCard(f, 'healthy')));
+    UNHEALTHY_FOODS.forEach(f => uGrid.appendChild(foodCard(f, 'unhealthy')));
+  }
+ 
+  function foodCard(food, category){
+    const div = document.createElement('div');
+    div.className = 'food-item';
+    div.dataset.id = food.id;
+    div.innerHTML = `<span class="emoji">${food.emoji}</span><span class="fname">${food.name}</span>`;
+    div.addEventListener('click', ()=>selectFood(food, category, div));
+    return div;
+  }
+ 
+  function selectFood(food, category, el){
+    if(state.ended) return;
+    document.querySelectorAll('.food-item').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedFood = { ...food, category };
+    document.getElementById('feed-btn').disabled = false;
+    document.getElementById('selected-hint').textContent = `Seleccionaste: ${food.name} ${food.emoji}`;
+  }
+ 
+  /* ---------------------------------------------------------
+     FEEDING LOGIC
+  --------------------------------------------------------- */
+  document.getElementById('feed-btn').addEventListener('click', feedPet);
+ 
+  function clamp(v){ return Math.max(0, Math.min(100, v)); }
+ 
+  function feedPet(){
+    if(!state.selectedFood || state.ended) return;
+    const food = state.selectedFood;
+    state.feedCount++;
+ 
+    let healthDelta = food.health;
+    let energyDelta = food.energy;
+    let happinessDelta = food.happiness;
+ 
+    if(food.category === 'unhealthy'){
+      state.unhealthyStreak++;
+      // Repeated unhealthy eating hits health harder — teaches consequence of repetition
+      if(state.unhealthyStreak >= 2){
+        healthDelta -= (state.unhealthyStreak - 1) * 2;
+      }
+    } else {
+      state.unhealthyStreak = 0;
+      // small recovery bonus for choosing healthy after unhealthy streak
+    }
+ 
+    state.health = clamp(state.health + healthDelta);
+    state.energy = clamp(state.energy + energyDelta);
+    state.happiness = clamp(state.happiness + happinessDelta);
+ 
+    updateStatsUI();
+    renderPet();
+    showReaction(food.category);
+ 
+    let msg = food.msg;
+    if(food.category === 'unhealthy' && state.unhealthyStreak >= 3){
+      msg += ' Comer demasiados alimentos poco saludables seguidos puede afectar mucho la salud.';
+    } else if(food.category === 'healthy' && state.feedCount % 4 === 0){
+      msg += ' ' + EQUILIBRIO_MSG;
+    }
+    setMessage(food.category === 'healthy' ? '🌟' : '⚠️', msg, false);
+ 
+    // reset selection
+    state.selectedFood = null;
+    document.querySelectorAll('.food-item').forEach(e=>e.classList.remove('selected'));
+    document.getElementById('feed-btn').disabled = true;
+    document.getElementById('selected-hint').textContent = 'Ningún alimento seleccionado';
+ 
+    checkNeglect();
+  }
+ 
+  function showReaction(category){
+    const stage = document.querySelector('.stage');
+    const bubble = document.createElement('div');
+    bubble.className = 'status-bubble';
+    bubble.textContent = category === 'healthy' ? '😋' : '😕';
+    stage.appendChild(bubble);
+    setTimeout(()=>bubble.remove(), 900);
+  }
+ 
+  function setMessage(icon, text, empty){
+    const box = document.getElementById('message-box');
+    box.classList.toggle('empty', !!empty);
+    document.querySelector('.msg-icon').textContent = icon;
+    document.getElementById('message-text').textContent = text;
+  }
+ 
+  /* ---------------------------------------------------------
+     STATS UI
+  --------------------------------------------------------- */
+  function updateStatsUI(){
+    document.getElementById('bar-health').style.width = state.health + '%';
+    document.getElementById('bar-energy').style.width = state.energy + '%';
+    document.getElementById('bar-happiness').style.width = state.happiness + '%';
+    document.getElementById('val-health').textContent = state.health;
+    document.getElementById('val-energy').textContent = state.energy;
+    document.getElementById('val-happiness').textContent = state.happiness;
+ 
+    const avg = (state.health + state.energy + state.happiness) / 3;
+    let label, emoji;
+    if(state.health <= 20){ label = 'Necesita cuidado'; emoji='😟'; }
+    else if(avg >= 75){ label = 'Feliz'; emoji='😊'; }
+    else if(avg >= 50){ label = 'Bien'; emoji='🙂'; }
+    else if(avg >= 30){ label = 'Cansado'; emoji='😴'; }
+    else { label = 'Preocupado'; emoji='😢'; }
+    document.getElementById('overall-status').textContent = `Estado: ${label} ${emoji}`;
+  }
+ 
+  /* ---------------------------------------------------------
+     NEGLECT / END STATE (soft, non-graphic)
+  --------------------------------------------------------- */
+  function checkNeglect(){
+    if(state.health <= 8 && state.energy <= 15){
+      state.ended = true;
+      goToScreen('end-screen');
+    }
+  }
+ 
+  /* ---------------------------------------------------------
+     GENTLE PASSIVE DECAY — encourages ongoing care
+     (small tick every 25s while the game screen is active)
+  --------------------------------------------------------- */
+  setInterval(()=>{
+    const gameScreen = document.getElementById('game-screen');
+    if(!gameScreen.classList.contains('active') || state.ended) return;
+    state.energy = clamp(state.energy - 2);
+    state.happiness = clamp(state.happiness - 1);
+    updateStatsUI();
+    renderPet();
+    checkNeglect();
+  }, 25000);
+ 
+})();
+</script>
+</body>
+</html>
