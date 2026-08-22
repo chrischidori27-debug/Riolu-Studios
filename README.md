@@ -1,4 +1,4 @@
-![Baner del Repositorio]([images/Baner.jpg](https://raw.githubusercontent.com/chrischidori27-debug/Riolu-Studios/refs/heads/main/ProyectosGD/images/Baner.jpg))
+![Baner del Repositorio]((https://raw.githubusercontent.com/chrischidori27-debug/Riolu-Studios/refs/heads/main/ProyectosGD/images/Baner.jpg))
 
 # Rioulu-Studio
 Mi nombre es **Chris Rojas** soy un estudiante de la carrera de Ing. en Sistemas Informáticos, este es un repositorio de mi materia de GameDevelopment y subiré todos los proyectos que haga en esta materia.  
