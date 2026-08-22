@@ -1,5 +1,5 @@
 # Math Runner
-
+**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/math_runner.html  
 ## Descripción
 Math Runner es un juego de plataformas en el que el jugador avanza a través de 12 mundos con temáticas distintas (bosque, desierto, montaña, galaxia) resolviendo operaciones aritméticas cada vez más difíciles.
 
@@ -16,8 +16,8 @@ Puzzle
 * A / ← - Moverse a la izquierda
 * D / → - Moverse a la derecha
 * SPACE / W / ↑ - Saltar
-* 1, 2, 3 - Seleccionar la respuesta correcta (izquierda, centro, derecha)  
-**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/math_runner.html
+* 1, 2, 3 - Seleccionar la respuesta correcta (izquierda, centro, derecha)
+
 ## Capturas de pantalla
 
 ### Pantalla inicial
