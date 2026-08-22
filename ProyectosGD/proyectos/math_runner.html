@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Runner</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+        width:100%; height:100%;
+        font-family:'Trebuchet MS', Arial, sans-serif;
+        background:#0f172a;
+        overflow:hidden;
+        user-select:none;
+    }
+
+    #game {
+        width:100vw; height:100vh;
+        position:relative;
+        overflow:hidden;
+        transition: background 0.8s ease;
+    }
+
+    /* ===== TEMAS POR MUNDO ===== */
+    #game.tier1 { background: linear-gradient(#7dd3fc, #bbf7d0); }
+    #game.tier2 { background: linear-gradient(#fbbf24, #fde68a); }
+    #game.tier3 { background: linear-gradient(#93c5fd, #e0f2fe); }
+    #game.tier4 { background: linear-gradient(#1e1b4b, #4c1d95); }
+
+    #stars {
+        position:absolute; inset:0;
+        display:none;
+        background-image:
+            radial-gradient(2px 2px at 20% 30%, white, transparent),
+            radial-gradient(2px 2px at 60% 70%, white, transparent),
+            radial-gradient(1.5px 1.5px at 80% 20%, white, transparent),
+            radial-gradient(1.5px 1.5px at 35% 80%, white, transparent),
+            radial-gradient(2px 2px at 90% 50%, white, transparent),
+            radial-gradient(1px 1px at 10% 60%, white, transparent);
+        opacity:0.9;
+    }
+    #game.tier4 #stars { display:block; }
+
+    /* ===== HUD ===== */
+    #hud {
+        position:absolute; top:16px; left:50%; transform:translateX(-50%);
+        width:94%; max-width:1100px;
+        display:flex; justify-content:space-between; align-items:center;
+        color:white; font-weight:bold; font-size:18px; z-index:30;
+    }
+    .hud-box {
+        background:rgba(0,0,0,0.55);
+        padding:8px 16px; border-radius:12px;
+        display:flex; align-items:center; gap:6px;
+        box-shadow:0 3px 0 rgba(0,0,0,0.3);
+    }
+    #worldName {
+        font-size:14px; font-weight:normal; opacity:0.85;
+    }
+
+    /* ===== BARRA DE TIEMPO ===== */
+    #timerWrap {
+        position:absolute; top:70px; left:50%; transform:translateX(-50%);
+        width:90%; max-width:600px;
+        height:14px;
+        background:rgba(0,0,0,0.4);
+        border-radius:10px;
+        overflow:hidden;
+        z-index:30;
+        border:2px solid rgba(255,255,255,0.5);
+    }
+    #timerBar {
+        height:100%; width:100%;
+        background:#22c55e;
+        transition: width 0.2s linear, background 0.3s linear;
+    }
+
+    /* ===== PREGUNTA ===== */
+    #questionBox {
+        position:absolute; top:92px; left:50%; transform:translateX(-50%);
+        background:white;
+        padding:14px 36px;
+        border-radius:16px;
+        box-shadow:0 6px 0 rgba(0,0,0,0.25);
+        z-index:30;
+        text-align:center;
+    }
+    #question {
+        font-size:clamp(26px, 4vw, 40px);
+        color:#111827;
+        font-weight:bold;
+    }
+    #hint {
+        font-size:13px; color:#6b7280; margin-top:4px;
+    }
+
+    /* ===== ESCENARIO ===== */
+    #world {
+        position:absolute; width:100%; height:100%; left:0;
+    }
+
+    .cloud {
+        position:absolute; background:white; width:110px; height:40px;
+        border-radius:50px; opacity:0.85;
+    }
+    .cloud::before, .cloud::after {
+        content:""; position:absolute; background:white; border-radius:50%;
+    }
+    .cloud::before { width:55px; height:55px; top:-22px; left:18px; }
+    .cloud::after { width:45px; height:45px; top:-14px; right:14px; }
+    .cloud1 { top:14%; left:10%; }
+    .cloud2 { top:22%; right:12%; }
+    #game.tier4 .cloud { display:none; }
+
+    #ground {
+        position:absolute; bottom:0; left:0; width:100%; height:110px;
+        border-top:8px solid #166534;
+        background:#22c55e;
+        display:flex; align-items:center; justify-content:space-around;
+        font-size:34px;
+        transition: background 0.8s ease, border-color 0.8s ease;
+    }
+    #game.tier2 #ground { background:#fde047; border-color:#a16207; }
+    #game.tier3 #ground { background:#e5f3ff; border-color:#60a5fa; }
+    #game.tier4 #ground { background:#312e81; border-color:#a855f7; }
+
+    /* ===== JUGADOR ===== */
+    #player {
+        position:absolute; bottom:110px; left:12%;
+        width:60px; height:70px;
+        font-size:52px;
+        text-align:center;
+        z-index:20;
+        transition: bottom 0.05s linear, transform 0.1s;
+    }
+    #player.running { animation: bob 0.3s infinite ease-in-out; }
+    @keyframes bob {
+        0%,100% { transform:translateY(0) scaleX(1); }
+        50% { transform:translateY(-6px) scaleX(1); }
+    }
+    #player.left { transform:scaleX(-1); }
+
+    /* ===== PLATAFORMAS DE RESPUESTA ===== */
+    #answers {
+        position:absolute; bottom:110px; left:0; width:100%;
+        display:flex; justify-content:center; gap:40px;
+        z-index:15;
+    }
+    .platform {
+        width:150px; height:90px;
+        border-radius:16px;
+        border:5px solid #854d0e;
+        display:flex; flex-direction:column;
+        justify-content:center; align-items:center;
+        font-size:30px; font-weight:bold;
+        background:#facc15;
+        box-shadow:0 8px 0 #a16207;
+        transition:0.15s;
+        position:relative;
+    }
+    .platform .key {
+        position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+        background:#111827; color:white;
+        width:28px; height:28px; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        font-size:15px; border:2px solid white;
+    }
+    .platform.correct { background:#4ade80 !important; border-color:#166534; }
+    .platform.wrong { background:#f87171 !important; border-color:#991b1b; }
+    .platform.shake { animation: shake 0.4s; }
+    @keyframes shake {
+        0%,100% { transform:translateX(0); }
+        25% { transform:translateX(-8px); }
+        75% { transform:translateX(8px); }
+    }
+
+    /* ===== DECORACIONES DE MUNDO ===== */
+    .deco {
+        position:absolute; bottom:110px; font-size:40px;
+        opacity:0.9;
+    }
+
+    /* ===== MENSAJE FLOTANTE ===== */
+    #message {
+        position:absolute; top:45%; left:50%; transform:translate(-50%,-50%);
+        color:white; font-size:44px; font-weight:bold; text-align:center;
+        text-shadow:3px 3px 6px black; z-index:100; pointer-events:none;
+    }
+
+    /* ===== CONTROLES ===== */
+    #controls {
+        position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+        color:white; background:rgba(0,0,0,0.55);
+        padding:8px 18px; border-radius:10px; font-size:15px; z-index:30;
+        text-align:center;
+    }
+
+    /* ===== PANTALLAS ===== */
+    .screen {
+        position:absolute; inset:0;
+        background:linear-gradient(135deg,#0f172a,#1e293b);
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        color:white; text-align:center; z-index:200;
+        gap:14px; padding:20px;
+    }
+    .screen h1 {
+        font-size:clamp(36px, 6vw, 64px);
+        text-shadow:0 4px 0 rgba(0,0,0,0.4);
+    }
+    .screen p { font-size:18px; opacity:0.9; max-width:500px; }
+    .badge {
+        background:rgba(255,255,255,0.1);
+        border:2px solid rgba(255,255,255,0.3);
+        padding:10px 24px; border-radius:12px; font-size:18px;
+    }
+    .pulse {
+        margin-top:10px; font-size:20px; font-weight:bold;
+        color:#4ade80;
+        animation:pulseAnim 1.2s infinite;
+    }
+    @keyframes pulseAnim { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+    .hidden { display:none !important; }
+
+    #worldStripe {
+        display:flex; gap:6px; margin-top:6px;
+    }
+    #worldStripe span {
+        width:16px; height:16px; border-radius:50%;
+        background:rgba(255,255,255,0.25);
+    }
+    #worldStripe span.done { background:#4ade80; }
+    #worldStripe span.current { background:#facc15; box-shadow:0 0 8px #facc15; }
+</style>
+</head>
+<body>
+
+<div id="game" class="tier1">
+    <div id="stars"></div>
+
+    <!-- ===== PANTALLA DE INICIO ===== -->
+    <div id="startScreen" class="screen">
+        <h1>🏃 Math Runner</h1>
+        <p>Corre por 12 mundos resolviendo operaciones matemáticas cada vez más difíciles. ¡Tienes solo 10 segundos por pregunta y 3 vidas!</p>
+        <div class="badge">
+            ⬅️➡️ A / D — Moverte &nbsp;&nbsp; ⬆️ ESPACIO — Saltar<br>
+            🔢 1 / 2 / 3 — Elegir respuesta
+        </div>
+        <div class="pulse">Presiona ENTER para comenzar</div>
+    </div>
+
+    <!-- ===== PANTALLA DE MUERTE ===== -->
+    <div id="deathScreen" class="screen hidden">
+        <h1>💀 GAME OVER</h1>
+        <p id="deathStats"></p>
+        <div class="pulse">Presiona ENTER para volver a intentar</div>
+    </div>
+
+    <!-- ===== PANTALLA DE VICTORIA ===== -->
+    <div id="victoryScreen" class="screen hidden">
+        <h1>🏆 ¡VICTORIA!</h1>
+        <p id="victoryStats"></p>
+        <div class="pulse">Presiona ENTER para jugar de nuevo</div>
+    </div>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" class="hidden">
+        <div class="hud-box">❤️ <span id="lives">3</span></div>
+        <div class="hud-box">
+            🌍 Mundo <span id="worldNum">1</span>/12
+            <span id="worldName">Bosque Encantado</span>
+        </div>
+        <div class="hud-box">⭐ <span id="score">0</span></div>
+    </div>
+
+    <div id="timerWrap" class="hidden"><div id="timerBar"></div></div>
+
+    <div id="questionBox" class="hidden">
+        <div id="question">5 + 5 = ?</div>
+        <div id="hint">Responde con el teclado antes de que se acabe el tiempo</div>
+    </div>
+
+    <div id="world" class="hidden">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+
+        <div id="player">🏃</div>
+
+        <div id="answers">
+            <div class="platform" id="p0"><span class="key">1</span><span class="val">10</span></div>
+            <div class="platform" id="p1"><span class="key">2</span><span class="val">12</span></div>
+            <div class="platform" id="p2"><span class="key">3</span><span class="val">15</span></div>
+        </div>
+
+        <div id="ground"></div>
+    </div>
+
+    <div id="message"></div>
+
+    <div id="controls" class="hidden">
+        ⬅️ A / D ➡️ &nbsp;&nbsp;|&nbsp;&nbsp; ⬆️ ESPACIO saltar &nbsp;&nbsp;|&nbsp;&nbsp; 1 2 3 responder
+    </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN DE MUNDOS
+========================================================= */
+const TOTAL_WORLDS = 12;
+const QUESTION_TIME = 10; // segundos, corto porque son operaciones simples
+
+const TIERS = [
+    { name:"Bosque Encantado", cssClass:"tier1", player:"🏃", deco:["🌲","🌳","🍄"], scoreMult:1 },
+    { name:"Desierto Ardiente", cssClass:"tier2", player:"🏜️", deco:["🌵","🦂","💀"], scoreMult:2 },
+    { name:"Montaña Helada", cssClass:"tier3", player:"⛷️", deco:["🧊","⛄","❄️"], scoreMult:3 },
+    { name:"Galaxia Final", cssClass:"tier4", player:"🧑‍🚀", deco:["☄️","🛰️","👽"], scoreMult:4 }
+];
+
+function getTierIndex(world) {
+    return Math.min(3, Math.floor((world - 1) / 3));
+}
+
+/* =========================================================
+   ELEMENTOS DEL DOM
+========================================================= */
+const gameEl = document.getElementById("game");
+const startScreen = document.getElementById("startScreen");
+const deathScreen = document.getElementById("deathScreen");
+const victoryScreen = document.getElementById("victoryScreen");
+const deathStats = document.getElementById("deathStats");
+const victoryStats = document.getElementById("victoryStats");
+
+const hud = document.getElementById("hud");
+const timerWrap = document.getElementById("timerWrap");
+const timerBar = document.getElementById("timerBar");
+const questionBox = document.getElementById("questionBox");
+const worldEl = document.getElementById("world");
+const controlsEl = document.getElementById("controls");
+
+const player = document.getElementById("player");
+const question = document.getElementById("question");
+const platforms = [document.getElementById("p0"), document.getElementById("p1"), document.getElementById("p2")];
+
+const livesText = document.getElementById("lives");
+const scoreText = document.getElementById("score");
+const worldNumText = document.getElementById("worldNum");
+const worldNameText = document.getElementById("worldName");
+
+const message = document.getElementById("message");
+const groundEl = document.getElementById("ground");
+
+/* =========================================================
+   ESTADO
+========================================================= */
+let state = "start"; // start | playing | locked | gameover | victory
+let lives = 3;
+let score = 0;
+let world = 1;
+let correctAnswer = 0;
+let timeLeft = QUESTION_TIME;
+let timerInterval = null;
+
+let playerY = 0;
+let velocityY = 0;
+let jumping = false;
+let playerX = 12; // % desde la izquierda
+const gravity = 0.9;
+const jumpPower = 15;
+const moveSpeed = 0.5;
+
+const keys = { left:false, right:false };
+
+/* =========================================================
+   TECLADO
+========================================================= */
+document.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+
+    if (state === "start" && k === "enter") {
+        startGame();
+        return;
+    }
+    if (state === "gameover" && k === "enter") {
+        startGame();
+        return;
+    }
+    if (state === "victory" && k === "enter") {
+        startGame();
+        return;
+    }
+
+    if (state !== "playing") return;
+
+    if (k === "a" || k === "arrowleft") { keys.left = true; player.classList.add("left"); }
+    if (k === "d" || k === "arrowright") { keys.right = true; player.classList.remove("left"); }
+    if (k === " " || k === "arrowup" || k === "w") { e.preventDefault(); jump(); }
+
+    if (k === "1") selectAnswer(0);
+    if (k === "2") selectAnswer(1);
+    if (k === "3") selectAnswer(2);
+});
+
+document.addEventListener("keyup", (e) => {
+    const k = e.key.toLowerCase();
+    if (k === "a" || k === "arrowleft") keys.left = false;
+    if (k === "d" || k === "arrowright") keys.right = false;
+});
+
+function jump() {
+    if (!jumping) {
+        jumping = true;
+        velocityY = jumpPower;
+    }
+}
+
+/* =========================================================
+   BUCLE DE ANIMACIÓN DEL JUGADOR (COSMÉTICO)
+========================================================= */
+function playerLoop() {
+    if (state === "playing") {
+        if (keys.left) playerX -= moveSpeed;
+        if (keys.right) playerX += moveSpeed;
+        playerX = Math.max(3, Math.min(85, playerX));
+
+        if (jumping) {
+            playerY += velocityY;
+            velocityY -= gravity;
+            if (playerY <= 0) { playerY = 0; velocityY = 0; jumping = false; }
+        }
+
+        player.style.left = playerX + "%";
+        player.style.bottom = (110 + playerY) + "px";
+
+        if (keys.left || keys.right) player.classList.add("running");
+        else player.classList.remove("running");
+    }
+    requestAnimationFrame(playerLoop);
+}
+playerLoop();
+
+/* =========================================================
+   INICIO / REINICIO
+========================================================= */
+function startGame() {
+    lives = 3;
+    score = 0;
+    world = 1;
+    playerX = 12;
+    playerY = 0;
+    velocityY = 0;
+    jumping = false;
+
+    livesText.textContent = "❤️".repeat(lives);
+    scoreText.textContent = score;
+
+    startScreen.classList.add("hidden");
+    deathScreen.classList.add("hidden");
+    victoryScreen.classList.add("hidden");
+
+    hud.classList.remove("hidden");
+    timerWrap.classList.remove("hidden");
+    questionBox.classList.remove("hidden");
+    worldEl.classList.remove("hidden");
+    controlsEl.classList.remove("hidden");
+
+    state = "playing";
+    applyTier();
+    generateQuestion();
+}
+
+/* =========================================================
+   APLICAR TEMA DE MUNDO
+========================================================= */
+function applyTier() {
+    const tier = TIERS[getTierIndex(world)];
+    gameEl.className = tier.cssClass;
+    player.textContent = tier.player;
+    worldNumText.textContent = world;
+    worldNameText.textContent = tier.name;
+
+    // decoraciones de suelo
+    groundEl.innerHTML = "";
+    for (let i = 0; i < 6; i++) {
+        const d = document.createElement("span");
+        d.textContent = tier.deco[i % tier.deco.length];
+        groundEl.appendChild(d);
+    }
+}
+
+/* =========================================================
+   GENERAR PREGUNTA SEGÚN DIFICULTAD DEL MUNDO
+========================================================= */
+function generateQuestion() {
+    applyTier();
+
+    const tierIndex = getTierIndex(world);
+    let a, b, c, result, text;
+
+    if (tierIndex === 0) {
+        // suma y resta simples
+        if (Math.random() < 0.5) {
+            a = rand(1, 20); b = rand(1, 20);
+            result = a + b;
+            text = `${a} + ${b} = ?`;
+        } else {
+            a = rand(15, 30); b = rand(1, 14);
+            result = a - b;
+            text = `${a} - ${b} = ?`;
+        }
+    } else if (tierIndex === 1) {
+        // multiplicación
+        a = rand(2, 12); b = rand(2, 12);
+        result = a * b;
+        text = `${a} × ${b} = ?`;
+    } else if (tierIndex === 2) {
+        // división exacta o multiplicación de números más grandes
+        if (Math.random() < 0.5) {
+            b = rand(2, 12); result = rand(2, 12);
+            a = b * result;
+            text = `${a} ÷ ${b} = ?`;
+        } else {
+            a = rand(11, 20); b = rand(3, 9);
+            result = a * b;
+            text = `${a} × ${b} = ?`;
+        }
+    } else {
+        // mundo final: operaciones combinadas y números grandes
+        const type = rand(0, 2);
+        if (type === 0) {
+            a = rand(12, 25); b = rand(2, 12);
+            result = a * b;
+            text = `${a} × ${b} = ?`;
+        } else if (type === 1) {
+            a = rand(2, 9); b = rand(2, 9); c = rand(2, 20);
+            result = a * b + c;
+            text = `${a} × ${b} + ${c} = ?`;
+        } else {
+            a = rand(2, 10);
+            result = a * a;
+            text = `${a}² = ?`;
+        }
+    }
+
+    correctAnswer = result;
+    question.textContent = text;
+
+    generateAnswerOptions();
+    resetTimer();
+}
+
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateAnswerOptions() {
+    const answers = [correctAnswer];
+    const spread = Math.max(4, Math.round(correctAnswer * 0.25));
+
+    let guard = 0;
+    while (answers.length < 3 && guard < 100) {
+        guard++;
+        const wrong = correctAnswer + rand(-spread, spread);
+        if (wrong > 0 && wrong !== correctAnswer && !answers.includes(wrong)) {
+            answers.push(wrong);
+        }
+    }
+    while (answers.length < 3) {
+        const filler = correctAnswer + answers.length + rand(1,5);
+        if (!answers.includes(filler)) answers.push(filler);
+    }
+
+    answers.sort(() => Math.random() - 0.5);
+
+    platforms.forEach((p, i) => {
+        p.querySelector(".val").textContent = answers[i];
+        p.classList.remove("correct", "wrong", "shake");
+    });
+}
+
+/* =========================================================
+   TEMPORIZADOR POR PREGUNTA
+========================================================= */
+function resetTimer() {
+    clearInterval(timerInterval);
+    timeLeft = QUESTION_TIME;
+    updateTimerBar();
+
+    timerInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        if (timeLeft <= 0) {
+            timeLeft = 0;
+            updateTimerBar();
+            clearInterval(timerInterval);
+            handleTimeout();
+        } else {
+            updateTimerBar();
+        }
+    }, 100);
+}
+
+function updateTimerBar() {
+    const pct = (timeLeft / QUESTION_TIME) * 100;
+    timerBar.style.width = pct + "%";
+    if (pct > 50) timerBar.style.background = "#22c55e";
+    else if (pct > 20) timerBar.style.background = "#facc15";
+    else timerBar.style.background = "#ef4444";
+}
+
+function handleTimeout() {
+    if (state !== "playing") return;
+    showMessage("⏰ ¡TIEMPO!");
+    loseLife();
+}
+
+/* =========================================================
+   SELECCIONAR RESPUESTA
+========================================================= */
+function selectAnswer(index) {
+    if (state !== "playing") return;
+    clearInterval(timerInterval);
+
+    const chosen = Number(platforms[index].querySelector(".val").textContent);
+
+    if (chosen === correctAnswer) {
+        platforms[index].classList.add("correct");
+        const tier = TIERS[getTierIndex(world)];
+        score += 100 * tier.scoreMult;
+        scoreText.textContent = score;
+        showMessage("✅ ¡CORRECTO!");
+
+        state = "locked";
+        setTimeout(() => {
+            hideMessage();
+            world++;
+            if (world > TOTAL_WORLDS) {
+                winGame();
+            } else {
+                state = "playing";
+                generateQuestion();
+            }
+        }, 800);
+    } else {
+        platforms[index].classList.add("wrong", "shake");
+        showMessage("❌ INCORRECTO");
+        loseLife();
+    }
+}
+
+/* =========================================================
+   PERDER VIDA
+========================================================= */
+function loseLife() {
+    if (state !== "playing" && state !== "locked") return;
+    clearInterval(timerInterval);
+    state = "locked";
+    lives--;
+    livesText.textContent = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(3 - Math.max(0, lives));
+
+    if (lives <= 0) {
+        setTimeout(() => { loseGame(); }, 700);
+    } else {
+        setTimeout(() => {
+            hideMessage();
+            state = "playing";
+            generateQuestion();
+        }, 700);
+    }
+}
+
+/* =========================================================
+   FIN DEL JUEGO
+========================================================= */
+function loseGame() {
+    state = "gameover";
+    clearInterval(timerInterval);
+    hideMessage();
+
+    hud.classList.add("hidden");
+    timerWrap.classList.add("hidden");
+    questionBox.classList.add("hidden");
+    worldEl.classList.add("hidden");
+    controlsEl.classList.add("hidden");
+
+    deathStats.innerHTML = `Llegaste al mundo <b>${world}</b> de ${TOTAL_WORLDS}<br>Puntuación final: <b>${score}</b>`;
+    deathScreen.classList.remove("hidden");
+}
+
+function winGame() {
+    state = "victory";
+    clearInterval(timerInterval);
+    hideMessage();
+
+    hud.classList.add("hidden");
+    timerWrap.classList.add("hidden");
+    questionBox.classList.add("hidden");
+    worldEl.classList.add("hidden");
+    controlsEl.classList.add("hidden");
+
+    victoryStats.innerHTML = `¡Completaste los ${TOTAL_WORLDS} mundos!<br>Puntuación final: <b>${score}</b>`;
+    victoryScreen.classList.remove("hidden");
+}
+
+/* =========================================================
+   MENSAJES
+========================================================= */
+function showMessage(text) { message.textContent = text; }
+function hideMessage() { message.textContent = ""; }
+</script>
+
+</body>
+</html>
