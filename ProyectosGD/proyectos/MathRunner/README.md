@@ -16,8 +16,8 @@ Puzzle
 * A / ← - Moverse a la izquierda
 * D / → - Moverse a la derecha
 * SPACE / W / ↑ - Saltar
-* 1, 2, 3 - Seleccionar la respuesta correcta (izquierda, centro, derecha)
-
+* 1, 2, 3 - Seleccionar la respuesta correcta (izquierda, centro, derecha)  
+**LINK:** https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/math_runner.html
 ## Capturas de pantalla
 
 ### Pantalla inicial
