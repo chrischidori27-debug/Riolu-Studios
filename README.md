@@ -37,7 +37,7 @@ Trata de un juego como una novela visual en donde tienes que decidir el destino 
 *https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/historia.html*
 ## Fresh Flow
 ![FreshDlow](https://raw.githubusercontent.com/chrischidori27-debug/Riolu-Studios/refs/heads/main/ProyectosGD/images/juegoFreshFlow.png)
-Trata de un juego donde tienes que atender un bar para ganar dinero y con ese dinero tienes que mejorar tu local para que vengan mas clientes y el juego gana cuando el local llega a la categoría de una marca internacional, dentro del juego tienes eventos aleatorios donde pueden quitarte dinero.
+Trata de un juego donde tienes que atender un bar para ganar dinero y con ese dinero tienes que mejorar tu local para que vengan mas clientes y el juego gana cuando el local llega a la categoría de una marca internacional, dentro del juego tienes eventos aleatorios donde pueden quitarte dinero.  
 **Genero:** Gestion, Desiciones  
 **Tecnología:** HTML, CSS y JavaScript   
 *https://chrischidori27-debug.github.io/Riolu-Studios/ProyectosGD/proyectos/FreshFlow.html*
